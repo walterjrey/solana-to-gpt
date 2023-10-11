@@ -264,8 +264,9 @@ def reload_tokens_price():
             print(f"Name: {value['name']}")
             print(f"Name: {value['quote']['USD']['price']}")
             token = value['platform']['token_address']
-            with open(f"data/tokens/{token}/quote.json", 'w') as f:
-                json.dump(value, f, indent=4)
+            if os.path.isdir(f"data/tokens/{token}") is not False:
+                with open(f"data/tokens/{token}/quote.json", 'w') as f:
+                    json.dump(value, f, indent=4)
 
         with open(f"data/quotes.json", 'w') as f:
             print(response.json())
