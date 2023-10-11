@@ -9,6 +9,7 @@
 
 # Byte-compiled / optimized / DLL files
 backend/solana_to_gpt/__pycache__/
+backend/solana_to_gpt/services/__pycache__/
 backend/solana_to_gpt/*.py[cod]
 backend/solana_to_gpt/*$py.class
 
