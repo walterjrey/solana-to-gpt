@@ -1,12 +1,9 @@
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import time
 import requests
-from llama_index import download_loader
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 import re
@@ -121,7 +118,7 @@ def get_web_links(start_url: str):
                 continue
             url_parsed = urlparse(current_url)
             path = url_parsed.path
-            print(f"path->{path}")
+
             if "http" not in url_parsed.scheme and "https" not in url_parsed.scheme:
                 continue
             if "." in path:
@@ -164,15 +161,7 @@ def get_web_links(start_url: str):
                 print(f"current link error: {err}")
                 continue
             
-            
-            # Procesar el contenido de la página aquí
-            #page_content = driver.page_source
-            
-            #f = open(f"data/tokens/{token}/data/{current_index}.html","w+")
-            #f.write(page_content)
-
             current_index = current_index + 1
-            
             
             # Marcar la URL como visitada
             visited_urls.add(current_url)

@@ -26,7 +26,6 @@ def parse_document(documents: list[Document]):
     return document
 
 def download_tmp_file(url: str, filename: str):
-    print(f"download_tmp_file ------------> {filename} {url}")
     response = requests.get(url)
     with open(filename, 'wb') as f:
         f.write(response.content)

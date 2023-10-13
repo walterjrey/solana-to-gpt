@@ -1,9 +1,7 @@
 from services.coinmarketcap import read_token_quote, read_token_metadata, get_solana_coins
 from services.web import get_stats_from_solana
 from databases.pg import insert_price, get_stats_rank, get_count_stats
-from services.embeddings import create_embeddings_index
 from services.sessions import create_token_metadata
-import os
 from cachetools import cached, TTLCache
 from models.tag import Tag
 from services import coinmarketcap
@@ -189,7 +187,6 @@ def scrape_token_web_links():
             meta = read_token_metadata(token_address, coin.id)
             if meta is not None and meta['urls'] is not None and meta['urls']['website'] is not None:
                 if len(meta['urls']['website']) > 0:
-                    print(f"Scraping {meta['urls']['website'][0]} for token {token_address}")
                     links = get_web_links(meta['urls']['website'][0])
                     with open(f"data/tokens/{token_address}/links.json", 'w') as f:
                         json.dump(links, f, indent=4)
@@ -217,7 +214,6 @@ def update_prices_daily():
     for coin in coins:
         if coin.is_active == 1:
             token_address = coin.platform.token_address
-            print(token_address)
             quote = read_token_quote(token_address, coin.id)
             if quote['quote']['USD']['price'] is not None:
                 direction = ''
@@ -241,19 +237,11 @@ def update_prices_daily():
                     
 
 def update_metas():
-    metas = []
     coins = get_solana_coins()
     for coin in coins:
         if coin.is_active == 1:
             token_address = coin.platform.token_address
-            #if os.path.isfile(f"data/tokens/{token_address}/index.pkl") is False:
             create_token_metadata(token_address, coin.id)
-
-            #meta = read_token_metadata(token_address, coin.id)
-            #if meta is not None:
-            #    metas.append(meta)
-    
-   # create_embeddings_index(metas)
 
 @cached(cache=TTLCache(maxsize=1024, ttl=12 * 60 * 60))
 def get_tags():

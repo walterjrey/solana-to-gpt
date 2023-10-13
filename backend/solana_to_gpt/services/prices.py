@@ -1,4 +1,3 @@
-import numpy as np
 from statsmodels.tsa.arima.model import ARIMA
 import pandas as pd
 from prophet import Prophet
@@ -23,7 +22,7 @@ def prophet_prices_prediction(data, days):
 
     daily_arrays = []
     last_7_days = forecast.tail(7)
-    for index, row in last_7_days.iterrows():
+    for _, row in last_7_days.iterrows():
         daily_array = [row['ds'], row['yhat'], row['yhat_lower'], row['yhat_upper']]
         daily_arrays.append(daily_array)
 

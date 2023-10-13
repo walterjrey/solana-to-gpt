@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Header
 from services.embeddings import search_on_token_index, search_on_index
 from services.tokens import get_tokens_by_tag, get_tokens_by_addresses, get_tokens_with_title_or_description, get_tokens_by_stats
-from databases.pg import insert_stat, get_stats_rank
+from databases.pg import insert_stat
 from typing import Annotated
 from cachetools import cached, TTLCache
 
@@ -15,7 +15,6 @@ async def get_all_by_stats(query: str):
 @cached(cache=TTLCache(maxsize=1024, ttl=4 * 60 * 60))
 @router.get("/tokens/{kind}")
 async def get_tokens(kind: str, query: str, X_Solana_Key: Annotated[str | None, Header()] = None):
-    print(kind, query)
     if kind == "tag":
         insert_stat("tags", query, X_Solana_Key)
         return get_tokens_by_tag(query)

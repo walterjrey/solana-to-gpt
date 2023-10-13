@@ -2,7 +2,6 @@ import os
 import dotenv
 import json
 from services.messages import chat_completion__with_function_calling
-from services.messages import semantic_search_and_completion
 from models.messages import MessageList
 
 dotenv.load_dotenv()
@@ -17,7 +16,6 @@ def handleStream(messages: list, token: str, user: str):
                                                                 messages, token)
     if "completion" in completion_fn_call:
         for event in completion_fn_call['completion']:
-            print(event)
             if 'choices' in event and event["choices"][0]["delta"].get("content") is not None:
                 chunk = event["choices"][0]["delta"]["content"]
                 json_data = json.dumps({"role": "stream", "content": chunk})

@@ -8,7 +8,6 @@ def create_token_metadata(token:str, id: str):
     print(f"Creating token metadata for {token}")
     if os.path.isfile(f"data/tokens/{token}/content.txt") is True:
         return
-    #try:
 
     meta = coinmarketcap.read_token_metadata(token, id)
     links = {'links': [], 'pdfs': [], 'docs': [], 'txts': []}
@@ -42,6 +41,4 @@ def create_token_metadata(token:str, id: str):
 
     create_embeddings_for_token(token, links, twitter_docs, meta['name'])
 
-#except Exception as err:
-#    print(f"Error creating token metadata for {token}: {err}")
     return False

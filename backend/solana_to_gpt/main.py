@@ -1,13 +1,9 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from routes import users, tokens, search, tags, solana_to_gpt
-from services.sessions import create_token_metadata
-from services.web import get_stats_from_solana
-from services.tweeter import get_tweets
-from services.embeddings import search_on_token_index, search_on_index, create_embeddings_index, rebuild_tokens_indexes
 from databases.pg import migrate
-from services.tokens import update_prices_daily, update_metas, scrape_token_web_links
-from services.coinmarketcap import get_cmc_category, get_cmc_category_meta, get_cmc_category_quote, reload_tokens_price, reload_tokens_meta
+from services.tokens import update_prices_daily, update_metas
+from services.coinmarketcap import reload_tokens_meta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 migrate()
@@ -34,7 +30,7 @@ async def on_startup():
     scheduler.start()
 
 origins = [
-    "http://localhost:3000",  # Ajustar para tu configuración
+    "https://solanatogpt.com",
 ]
 
 app.add_middleware(
@@ -54,16 +50,3 @@ app.include_router(tokens.router, prefix="/tokens", tags=["tokens"])
 app.include_router(search.router, prefix="/search", tags=["search"])
 app.include_router(tags.router, prefix="/tags", tags=["tags"])
 app.include_router(solana_to_gpt.router, prefix="/solana-to-gpt", tags=["Solana to GPT Chat"])
-
-#update_prices_daily()
-#rebuild_tokens_indexes()
-#update_metas()
-#get_cmc_category_meta("9348")
-#get_cmc_category()
-#price_list()
-#quotes()
-#reload_tokens_price()
-#reload_tokens_meta()
-#create_embeddings_index()
-#scrape_token_web_links()
-

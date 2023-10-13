@@ -3,8 +3,7 @@ from services import coinmarketcap
 from services.tokens import get_inc_dec_top, get_inc_dec_top_volume, get_token_summary, get_pdfs
 from databases.pg import get_prices, insert_stat
 from cachetools import cached, TTLCache
-from datetime import datetime, date, timedelta
-from services.prices import forecast_multistep, prophet_prices_prediction
+from services.prices import prophet_prices_prediction
 from typing import Annotated
 
 router = APIRouter()

@@ -1,19 +1,12 @@
 import os
-import json
 import dotenv
 import openai
-import pickle
-import hashlib
 from services.embeddings import search_on_token_index
 from services.coinmarketcap import read_token_metadata, read_token_quote
 from databases.pg import get_prices
-from models.messages import Message
 from databases.pg import get_prices
 from datetime import datetime, date, timedelta
-import numpy as np
-import pandas as pd
-import statsmodels.api as sm
-from statsmodels.tsa.arima.model import ARIMA
+from services.prices import prophet_prices_prediction
 
 dotenv.load_dotenv()
 
@@ -37,24 +30,19 @@ def get_prices_for_token(token: str, token_name: str, contents: str):
         jsonprices += f"""{date_diff.days} days ago the price was ${price[2]} and the market cap was ${price[4]} (the price went {price[5]}).\n"""
         precios.append(price[2])
 
-    # Convertir la lista de precios en un DataFrame
-    df = pd.DataFrame(precios, columns=['Precio'])
 
-    # Crear un modelo ARIMA. Puedes ajustar los parámetros (p, d, q) según sea necesario.
-    # En este ejemplo, utilizo (1,1,1) como valores arbitrarios.
-    modelo = ARIMA(df['Precio'], order=(1,1,1))
-    modelo_entrenado = modelo.fit()
+    pricesValue = []
+    for price in prices:
+        pricesValue.append([price[6], price[2]])
 
-    # Predecir el precio para el próximo día
-    #prediccion = modelo_entrenado.forecast(steps=1)
-    #prediction_tomorrow = f"{prediccion.tolist()[0]:.8f}"
+    predictions = prophet_prices_prediction(pricesValue, 7)
     prediction = ""
     today = datetime.today()
-    n = 7
-    prediccion_n_dias = modelo_entrenado.forecast(steps=n)
+    day = 1
 
-    for i, precio in enumerate(prediccion_n_dias, start=1):
-        prediction += f"The prediction of the price for {today + timedelta(days=i)} is ${precio:.8f}.\n"
+    for prediction in predictions:
+        prediction += f"The prediction of the price for {today + timedelta(days=day)} is ${prediction[2]:.8f}.\n"
+        day += 1
 
     function_description = f"""
     You are an intelligent assistant expert in financial information about the token {token_name} from the Solana Network.
@@ -69,10 +57,6 @@ def get_prices_for_token(token: str, token_name: str, contents: str):
     {prediction}
     Do analysis of the financial information and give summary to the user based in the facts.
     """
-
-    #print(f"{prediccion.tolist()[0]:.8f}")
-
-    #print(f"El precio predicho para el día {len(precios) + 1} es: {prediccion[0]:.2f}")
 
     return function_description
 
@@ -209,7 +193,7 @@ def chat_completion__with_function_calling(user: str, messages: list, token: str
             },
         }
     ]
-    print(messages)
+
     completion = openai.ChatCompletion.create(
         model=GPT_MODEL,
         messages=messages,
@@ -217,14 +201,11 @@ def chat_completion__with_function_calling(user: str, messages: list, token: str
         function_call="auto",
         temperature=0.2,
     )
-    print(completion)
-    response = {}
+
     if 'choices' in completion and completion.choices[0].message.get("function_call"):
         fc = completion.choices[0].message.get("function_call")
-        print(fc)
         if fc["name"] == "get_prices_for_token":
             function_response = get_prices_for_token(token, meta['name'], contents)
-            print(function_response)
             messages.append(
                 {
                     "role": "function",
@@ -234,7 +215,6 @@ def chat_completion__with_function_calling(user: str, messages: list, token: str
             )
             completion = openai.ChatCompletion.create(
             model=GPT_MODEL, messages=messages, stream=True)
-            print(completion)
             return {
                 "completion": completion
             }
@@ -242,9 +222,7 @@ def chat_completion__with_function_calling(user: str, messages: list, token: str
             function_call = completion.choices[0].message.function_call
             query = eval(function_call["arguments"])["query"]
             question = eval(function_call["arguments"])["question"]
-            print(query, question)
             semantic_res = semantic_search_and_completion(question,
                                                     query, token, "")
-            print(semantic_res)
             return semantic_res
     return {"message": completion.choices[0].message.content}

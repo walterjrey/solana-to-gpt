@@ -105,11 +105,6 @@ def get_cmc_category():
 
 
 def get_cmc_quota(category: str):
-    headers = {
-    'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': CMC_KEY,
-    }
-
     url = f"{CMC_BASE_URL_V2}/cryptocurrency/quotes/latest?id=" + category
 
     response = requests.get(url, headers=HEADETRS)
@@ -190,7 +185,6 @@ def get_cmc_category_quote(category: str, token: str):
 
     if response.status_code == 200:
         with open(f"data/tokens/{token}/quote.json", 'w') as f:
-            print(response.json())
             json.dump(response.json(), f, indent=4)
     else:
         print(f"Error: {response.status_code}")
@@ -215,8 +209,6 @@ def get_cmc_category_meta(category: str):
 
     if response.status_code == 200:
         data = response.json()
-        #meta = ApiResponseMeta(**data)
-        print(data)
         _, metadata = next(iter(data['data'].items()))
         token = metadata['platform']['token_address']
         
@@ -269,7 +261,6 @@ def reload_tokens_price():
                     json.dump(value, f, indent=4)
 
         with open(f"data/quotes.json", 'w') as f:
-            print(response.json())
             json.dump(response.json(), f, indent=4)
     else:
         print(f"Error: {response.status_code}")
@@ -290,7 +281,6 @@ def reload_tokens_meta():
     if response.status_code == 200:
         data = response.json()
         for _, value in data['data'].items():
-            print(f"Name: {value['name']}")
             token = value['platform']['token_address']
             with open(f"data/tokens/{token}/meta.json", 'w') as f:
                 json.dump(value, f, indent=4)

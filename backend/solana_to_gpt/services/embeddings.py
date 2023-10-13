@@ -1,26 +1,17 @@
-from llama_hub.web.async_web.base import AsyncWebPageReader
 from llama_index import download_loader
 from utils.documents import parse_document
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.docstore.document import Document
 from langchain.embeddings.spacy_embeddings import SpacyEmbeddings
 import dotenv
-import logging
 import openai
 import pickle
-import spacy.cli
 import json
-from models.meta import Coin
 from utils.documents import download_tmp_file, remove_tmp_file
 from urllib.parse import urlparse
 from pathlib import Path
 import os
-from transformers import pipeline
-from transformers import AutoTokenizer, TFPegasusForConditionalGeneration, TFBartForConditionalGeneration
-from transformers import TFBartModel
-import tensorflow as tf
 from services.coinmarketcap import get_solana_coins
 
 dotenv.load_dotenv()
@@ -28,12 +19,7 @@ dotenv.load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 GPT_MODEL = "gpt-3.5-turbo-16k-0613"
 
-
-
-#spacy.cli.download("en_core_web_sm")
-
 def create_embeddings_for_token(token: str, links: {}, twitter_docs: list[str], token_name: str):
-    print(links)
     documents = []
     if len(links['links']) > 0:
         try:
@@ -60,7 +46,6 @@ def create_embeddings_for_token(token: str, links: {}, twitter_docs: list[str], 
                 remove_tmp_file(filename)
             except Exception as err:
                 print(f"pdfs: {err}")
-                #return False
                 
 
     if len(links['docs']) > 0:
@@ -77,7 +62,6 @@ def create_embeddings_for_token(token: str, links: {}, twitter_docs: list[str], 
                 remove_tmp_file(filename)
             except Exception as err:
                 print(f"docs: {err}")
-                #return False
 
     if len(links['txts']) > 0:
         TXTReader = download_loader("TXTReader")
@@ -93,7 +77,6 @@ def create_embeddings_for_token(token: str, links: {}, twitter_docs: list[str], 
                 remove_tmp_file(filename)
             except Exception as err:
                 print(f"txts: {err}")
-                #return False
 
     document = parse_document(documents)
 
@@ -109,11 +92,9 @@ def create_embeddings_for_token(token: str, links: {}, twitter_docs: list[str], 
     openai_summary = []
 
     chunks = splitter.split_text(document)
-    print("chunks count: " + str(len(chunks)))
     current = 0
     for chunk in chunks:
         current += 1
-        print("current chunk: " + str(current) + " of " + str(len(chunks)))
         summary += "\n\n" + chunk
 
         if len("".join(openai_summary)) <= 10000:
@@ -136,7 +117,6 @@ def create_embeddings_for_token(token: str, links: {}, twitter_docs: list[str], 
             openai_summary.append(completion.choices[0].message['content'])
             
     with open(f"data/tokens/{token}/openai_summary.txt", 'w') as f:
-        print(openai_summary)
         f.write("\n\n".join(openai_summary))
 
 
@@ -278,7 +258,6 @@ def search_on_token_index(token: str, query: str):
         search_index = pickle.load(index_file)
 
     results_with_scores = search_index.similarity_search_with_score(query, k=6)
-    print("similarity_search_with_score query", query)
     for doc, score in results_with_scores:
         print(doc.page_content, score)
         results.append({'doc': doc.page_content, 'score': str(score)})
@@ -293,7 +272,6 @@ def search_on_index(query: str):
 
     results_with_scores = search_index.similarity_search_with_score(query, k=10)
     for doc, score in results_with_scores:
-        print(doc, score)
         results.append({'doc': doc.page_content, 'metadata': doc.metadata, 'score': str(score)})
 
     return results
